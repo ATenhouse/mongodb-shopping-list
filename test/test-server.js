@@ -70,7 +70,6 @@ describe('Shopping List', function() {
             .end(function(err, res) {
                 should.equal(err, null)
                 res.should.have.status(200)
-                console.log(res.body)
                 done()
             })
     })

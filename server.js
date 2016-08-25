@@ -9,6 +9,8 @@ var app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
+var id_pointer = 4;
+
 var runServer = function(callback) {
     mongoose.connect(config.DATABASE_URL, function(err) {
         if (err && callback) {
@@ -32,6 +34,10 @@ if (require.main === module) {
     });
 };
 
+function isEmpty(obj){
+    return (Object.getOwnPropertyNames(obj).length === 0);
+}
+
 var Item = require('./models/item');
 
 app.get('/items', function(req, res) {
@@ -45,22 +51,41 @@ app.get('/items', function(req, res) {
     });
 });
 
-app.post('/items', function(req, res) {
-    Item.create({
-        name: req.body.name
-    }, function(err, item) {
-        if (err) {
-            return res.status(500).json({
-                message: 'Internal Server Error'
-            });                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+app.post('/items/:id?', function(req, res) {
+    var real_id = (req.body.id) ? req.body.id : id_pointer
+    
+    if (!req.body || isEmpty(req.body)) {
+        res.status(400).json({
+            "error": "Your request appears invalid. Please pass valid JSON in the form of {name: item}."
+        })
+    }
+    else {
+        if (id_pointer > req.body.id || id_pointer > req.params.id){
+            res.status(400).json({
+                "error": "The ID you've specified already exists. POSTing is intended for new entries, not replacing one. Please try REPLACE instead."
+            })
         }
-        res.status(201).json(item);
-    });
+        else
+        {
+            Item.create({
+                name: req.body.name,
+                id: real_id
+            }, function(err, item) {
+                if (err) {
+                    return res.status(500).json({
+                        message: 'Internal Server Error'
+                    });                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+                }
+                res.status(201).json({ status: "Successfully deleted something", item: item});
+            });
+            id_pointer = real_id + 1
+        }
+    }
 });
 
-app.put('/items', function(req, res) {
-    var g = Item.where({ id: res.body.id });
-    g.update({ name: res.body.name }, function(err, items) {
+app.put('/items/:id?', function(req, res) {
+    var g = Item.where({ name: req.body.replace });
+    g.update({ name: req.body.name }, function(err, items) {
         if (err) {
             return res.status(500).json({
                 message: 'Internal Server Error'
@@ -70,9 +95,15 @@ app.put('/items', function(req, res) {
     });
 });
 
-app.delete('/items', function(req, res) {
+app.delete('/items/:id?', function(req, res) {
+    if(req.params.id && req.body_target_id && req.params.id !== req.body_target_id){
+        return res.status(400).json({
+            message: 'Choose ONE ID to target at a time, not disparate IDs in the JSON and endpoint'
+        });
+    }
+    var real_target = req.params.id | req.body_target_id;
     Item.findOneAndRemove({
-      id: res.body.id  
+      id: real_target
     },function(err, items) {
         if (err) {
             return res.status(500).json({

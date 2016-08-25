@@ -42,6 +42,10 @@ describe('Shopping List', function() {
             })
     })
     it('should add an item on POST', function(done) {
+            chai.request('/items')
+                .done();    
+    })
+    it('should add an item on POST', function(done) {
         chai.request(app)
             .post('/items')
             .send({

@@ -9,6 +9,7 @@ var app = express();
 app.use(bodyParser.json());
 app.use(express.static('public'));
 
+// Our tests make three entries, so as a stopgap, this begins there
 var id_pointer = 4;
 
 var runServer = function(callback) {
@@ -37,6 +38,18 @@ if (require.main === module) {
 function isEmpty(obj){
     return (Object.getOwnPropertyNames(obj).length === 0);
 }
+
+// Straight-up yanked from http://stackoverflow.com/a/20392392
+function tryParseJSON(jsonString){
+    try {
+        var o = JSON.parse(jsonString);
+        if (o && typeof o === "object") {
+            return true;
+        }
+    }
+    catch (e) { }
+    return false;
+};
 
 var Item = require('./models/item');
 
@@ -84,15 +97,49 @@ app.post('/items/:id?', function(req, res) {
 });
 
 app.put('/items/:id?', function(req, res) {
-    var g = Item.where({ name: req.body.replace });
-    g.update({ name: req.body.name }, function(err, items) {
-        if (err) {
-            return res.status(500).json({
-                message: 'Internal Server Error'
-            });
-        }
-        res.json(items);
-    });
+    var passed_obj = req.body
+    var passed_id = req.params.id || 0
+    var inner_id = Number(passed_id)
+    if (isNaN(inner_id)) {
+        return res.status(400).json({
+            "error": "Requested ID '" + req.params.id + "' is not a number."
+        })
+    }
+    if(req.params.id && req.body.id && (req.params.id !== req.body.id)) {
+        return res.status(400).json({
+            "error": "Requested endpoint id "+req.params.id+" does not match the ID defined in the object: "+req.body.id
+        })
+    }
+    if(isEmpty(passed_obj) || tryParseJSON(passed_obj)){
+        return res.status(400).json({
+            "error": "Request refused. To replace a valid item, we need body data. Please attempt again in the form of {name: STRING, id: NUMBER}"
+        })
+    }
+    if(req.params.id) {
+        var g = Item.where({ id: req.params.id });
+        g.update({ name: req.body.name }, function(err, items) {
+            if (err) {
+                return res.status(500).json({
+                    message: 'Internal Server Error: ' + err
+                });
+            }
+            res.json(items);
+        })
+    }
+    else {
+        Item.create({
+            name: passed_obj.name,
+            id: id_pointer
+        }, function(err, items) {
+            if (err) {
+                return res.status(500).json({
+                    message: 'Internal Server Error'
+                });                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+            }
+            return res.status(201).json({ status: "No ID parameter was defined, so we POSTed to a new location. Cheers! Your new entry is at location/ID " + id_pointer, item: items});
+        });
+        id_pointer = id_pointer + 1
+    }
 });
 
 app.delete('/items/:id?', function(req, res) {
@@ -107,16 +154,23 @@ app.delete('/items/:id?', function(req, res) {
             "error": "Requested ID '" + req.params.id + "' is not a number."
         })
     }
-    Item.findOneAndRemove({
-      id: inner_id
-    },function(err, items) {
-        if (err) {
-            return res.status(500).json({
-                message: 'Internal Server Error: '+err
-            });
-        }
-        res.json({status: "Successfully deleted something", item: items});
-    });
+    if(req.params.id > id_pointer){
+        return res.status(400).json({
+            "error": "The ID you requested to delete ("+inner_id+") did not exist in the list."
+        })
+    }
+    else {
+        Item.findOneAndRemove({
+          id: inner_id
+        },function(err, items) {
+            if (err) {
+                return res.status(500).json({
+                    message: 'Internal Server Error: '+err
+                });
+            }
+            res.json({status: "Successfully deleted something", item: items});
+        })
+    }
 });
 
 app.use('*', function(req, res) {

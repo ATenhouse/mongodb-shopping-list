@@ -53,14 +53,6 @@ function tryParseJSON(jsonString){
 
 var Item = require('./models/item');
 
-
-function findExample(name) {
-    console.log("Passed name:",name)
-    Item.find().toArray(function(err, docs) {
-        console.log(docs);
-    });
-}
-
 app.get('/items', function(req, res) {
     Item.find(function(err, items) {
         if (err) {
@@ -74,6 +66,8 @@ app.get('/items', function(req, res) {
 
 app.post('/items/:id?', function(req, res) {
     var real_id = (req.body.id) ? req.body.id : id_pointer
+    // var x = Item.listOne(req.body.name)
+    // console.log("X:"+x)
     if (!req.body || isEmpty(req.body)) {
         res.status(400).json({
             "error": "Your request appears invalid. Please pass valid JSON in the form of {name: item}."

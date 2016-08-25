@@ -8,3 +8,12 @@ var ItemSchema = new mongoose.Schema({
 var Item = mongoose.model('Item', ItemSchema);
 
 module.exports = Item;
+
+module.exports.listOne = function(in_name, res) {
+  Item.findOne({name: in_name}, function(err, matches) {
+    if(err){
+        res.send({error: err})
+    }
+    res.send(matches);
+  });
+}

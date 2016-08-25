@@ -56,14 +56,9 @@ var Item = require('./models/item');
 
 function findExample(name) {
     console.log("Passed name:",name)
-    Item.findOne({ 'name': name }, function (err, item) {
-        if (err) {
-            console.log("Err: ",err)
-            return err
-        }
-        console.log("Item: ", item)
-        return item !== null
-    })
+    Item.find().toArray(function(err, docs) {
+        console.log(docs);
+    });
 }
 
 app.get('/items', function(req, res) {
@@ -90,14 +85,6 @@ app.post('/items/:id?', function(req, res) {
                 "error": "The ID you've specified already exists. POSTing is intended for new entries, not replacing one. Please try REPLACE instead."
             })
         }
-        var flag = findExample(req.body.name)
-        console.log(flag)
-        if( flag ) {
-            console.log("NAME already exists")
-            return res.status(400).json({
-                "error": "The name specified already exists in the list. Try, try again."
-            })
-        }
         else
         {
             Item.create({
@@ -106,7 +93,7 @@ app.post('/items/:id?', function(req, res) {
             }, function(err, item) {
                 if (err) {
                     return res.status(500).json({
-                        message: 'Internal Server Error'
+                        message: 'Internal Server Error:'+err
                     });                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
                 }
                 res.status(201).json({ status: "Successfully posted something", item: item});

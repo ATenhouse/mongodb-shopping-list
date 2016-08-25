@@ -4,7 +4,7 @@
   "description": "Shopping List app in fulfillment of Thinkful, beginning at lesson 2.2.2",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha ./test/test-server.js"
   },
   "author": "",
   "license": "ISC",

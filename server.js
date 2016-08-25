@@ -55,7 +55,7 @@ var Item = require('./models/item');
 
 function findExample(name) {
     console.log("Passed name:",name)
-    Item.findOne({ 'name': name }, 'Check for name', function (err, item) {
+    Item.findOne({ 'name': name }, function (err, item) {
         if (err) {
             console.log("Err: ",err)
             return err

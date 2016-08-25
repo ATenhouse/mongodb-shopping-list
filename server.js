@@ -76,7 +76,7 @@ app.post('/items/:id?', function(req, res) {
                         message: 'Internal Server Error'
                     });                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
                 }
-                res.status(201).json({ status: "Successfully deleted something", item: item});
+                res.status(201).json({ status: "Successfully posted something", item: item});
             });
             id_pointer = real_id + 1
         }
@@ -96,21 +96,26 @@ app.put('/items/:id?', function(req, res) {
 });
 
 app.delete('/items/:id?', function(req, res) {
-    if(req.params.id && req.body_target_id && req.params.id !== req.body_target_id){
+    var inner_id = Number(req.params.id)
+    if(req.params.id === undefined){
         return res.status(400).json({
-            message: 'Choose ONE ID to target at a time, not disparate IDs in the JSON and endpoint'
-        });
+            "error": "DELETE endpoint requires an ID, i.e. /items/ID."
+        })
     }
-    var real_target = req.params.id | req.body_target_id;
+    if (isNaN(inner_id)) {
+        return res.status(400).json({
+            "error": "Requested ID '" + req.params.id + "' is not a number."
+        })
+    }
     Item.findOneAndRemove({
-      id: real_target
+      id: inner_id
     },function(err, items) {
         if (err) {
             return res.status(500).json({
-                message: 'Internal Server Error'
+                message: 'Internal Server Error: '+err
             });
         }
-        res.json(items);
+        res.json({status: "Successfully deleted something", item: items});
     });
 });
 

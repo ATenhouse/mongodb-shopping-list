@@ -53,10 +53,17 @@ function tryParseJSON(jsonString){
 
 var Item = require('./models/item');
 
-function findExample(input_name) {
-    Item.find({ 'name': ""+input_name }, function(err,obj) {
-        return obj.toString();
-    });
+
+function findExample(name) {
+    console.log("Passed name:",name)
+    Item.findOne({ 'name': name }, function (err, item) {
+        if (err) {
+            console.log("Err: ",err)
+            return err
+        }
+        console.log("Item: ", item)
+        return item !== null
+    })
 }
 
 app.get('/items', function(req, res) {

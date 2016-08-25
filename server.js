@@ -53,6 +53,18 @@ function tryParseJSON(jsonString){
 
 var Item = require('./models/item');
 
+function findExample(name) {
+    console.log("Passed name:",name)
+    Item.findOne({ 'name': name }, 'Check for name', function (err, item) {
+        if (err) {
+            console.log("Err: ",err)
+            return err
+        }
+        console.log("Item: ", item)
+        return item !== null;
+    })
+}
+
 app.get('/items', function(req, res) {
     Item.find(function(err, items) {
         if (err) {
@@ -66,16 +78,23 @@ app.get('/items', function(req, res) {
 
 app.post('/items/:id?', function(req, res) {
     var real_id = (req.body.id) ? req.body.id : id_pointer
-    
     if (!req.body || isEmpty(req.body)) {
+        console.log("Invalid request")
         res.status(400).json({
             "error": "Your request appears invalid. Please pass valid JSON in the form of {name: item}."
         })
     }
     else {
         if (id_pointer > req.body.id || id_pointer > req.params.id){
-            res.status(400).json({
+            console.log("ID already exists")
+            return res.status(400).json({
                 "error": "The ID you've specified already exists. POSTing is intended for new entries, not replacing one. Please try REPLACE instead."
+            })
+        }
+        if(findExample(req.body.name)) {
+            console.log("NAME already exists")
+            return res.status(400).json({
+                "error": "The name specified already exists in the list. Try, try again."
             })
         }
         else

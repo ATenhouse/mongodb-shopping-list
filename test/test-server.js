@@ -28,6 +28,7 @@ describe('Shopping List', function() {
                 should.equal(err, null)
                 res.should.have.status(200)
                 res.should.be.json
+                console.log(res.body)
                 res.body.should.be.a('array')
                 res.body.should.have.length(3)
                 res.body[0].should.be.a('object')
@@ -50,6 +51,29 @@ describe('Shopping List', function() {
             .end(function(err, res) {
                 should.equal(err, null)
                 res.should.have.status(201)
+                res.should.be.json
+                res.body.should.be.a('object')
+                res.body.should.have.property('status')
+                res.body.status.should.equal("Successfully posted something")
+                res.body.should.have.property('item')
+                res.body.item.should.have.property('name')
+                res.body.item.should.have.property('id')
+                res.body.item.name.should.be.a('string')
+                res.body.item.id.should.be.a('number')
+                res.body.item.id.should.equal(4)
+                res.body.item.name.should.equal('Kale')
+                done()
+            })
+    })
+    it('should bounce duplicate items on POST', function(done) {
+        chai.request(app)
+            .post('/items')
+            .send({
+                'name': 'Kale'
+            })
+            .end(function(err, res) {
+                //should.not.equal(err, null)
+                res.should.have.status(400)
                 res.should.be.json
                 res.body.should.be.a('object')
                 res.body.should.have.property('status')

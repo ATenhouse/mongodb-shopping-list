@@ -28,7 +28,6 @@ describe('Shopping List', function() {
                 should.equal(err, null)
                 res.should.have.status(200)
                 res.should.be.json
-                console.log(res.body)
                 res.body.should.be.a('array')
                 res.body.should.have.length(3)
                 res.body[0].should.be.a('object')
@@ -41,10 +40,6 @@ describe('Shopping List', function() {
                 res.body[2].name.should.equal('Peppers')
                 done()
             })
-    })
-    it('should add an item on POST', function(done) {
-            chai.request('/items')
-                .done();    
     })
     it('should add an item on POST', function(done) {
         chai.request(app)
@@ -69,6 +64,16 @@ describe('Shopping List', function() {
                 done()
             })
     })
+    it('should THEN reflect the newly-altered item', function(done) {
+        chai.request(app)
+            .get('/items')
+            .end(function(err, res) {
+                should.equal(err, null)
+                res.should.have.status(200)
+                console.log(res.body)
+                done()
+            })
+    })
     it('should bounce duplicate items on POST', function(done) {
         chai.request(app)
             .post('/items')
@@ -76,7 +81,7 @@ describe('Shopping List', function() {
                 'name': 'Kale'
             })
             .end(function(err, res) {
-                //should.not.equal(err, null)
+                // should.not.equal(err, null)
                 res.should.have.status(400)
                 res.should.be.json
                 res.body.should.be.a('object')

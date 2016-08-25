@@ -61,7 +61,7 @@ function findExample(name) {
             return err
         }
         console.log("Item: ", item)
-        return item !== null;
+        return item !== null
     })
 }
 
@@ -91,7 +91,7 @@ app.post('/items/:id?', function(req, res) {
                 "error": "The ID you've specified already exists. POSTing is intended for new entries, not replacing one. Please try REPLACE instead."
             })
         }
-        if(findExample(req.body.name)) {
+        if( findExample(req.body.name) ) {
             console.log("NAME already exists")
             return res.status(400).json({
                 "error": "The name specified already exists in the list. Try, try again."
